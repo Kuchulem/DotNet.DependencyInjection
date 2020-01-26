@@ -4,7 +4,7 @@ Kuchulem's .Net dependency injection service is a .net standard service to resol
 
 >This is some experimental stuff designed because I was not happy with Xamarin.Forms.DependencyService.
 
-Quite easy to use it allow you to have _transcient_ dependencies (instantiated every time the service is called) or _singletons_ (instanciated only once).
+Quite easy to use it allows you to have _transcient_ dependencies (instantiated every time the service is called) or _singletons_ (instanciated only once).
 
 ## how to use
 
@@ -28,7 +28,7 @@ namespace DependencyInjection.Demo.Services
     interface INumericalSequenceService
     {
         // Every numerical sequence has some initialization values
-        int[] InitialValues { get; }
+        List<int> InitialValues { get; }
 
         // Will return the next value for the sequence
         int Next();
