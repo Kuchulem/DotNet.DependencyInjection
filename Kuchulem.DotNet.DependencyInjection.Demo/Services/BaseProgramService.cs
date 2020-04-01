@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kuchulem.DotNet.DependencyInjection.Writer;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,6 +11,12 @@ namespace Kuchulem.DotNet.DependencyInjection.Demo.Services
     {
         protected II18nService i18nService;
         private readonly IProgramService programService;
+        protected readonly IWriter writer;
+
+        public BaseProgramService(IWriter writer)
+        {
+            this.writer = writer;
+        }
 
         public void Run()
         {
@@ -35,14 +42,14 @@ namespace Kuchulem.DotNet.DependencyInjection.Demo.Services
         {
             if(args is null)
             {
-                Console.WriteLine(i18nService.Translate(token));
+                writer.WriteLine(i18nService.Translate(token));
                 return;
             }
 
             for (var i = 0; i < args.Length; i++)
                 args[i] = (args[i] is string) ? i18nService.Translate((string)args[i]) : args[i];
 
-            Console.WriteLine(string.Format(i18nService.Translate(token), args));
+            writer.WriteLine(string.Format(i18nService.Translate(token), args));
         }
 
         protected T Question<T>(string token, string[] allowedAnswers, Func<string, T> answersTransformer, object?[] args = null)

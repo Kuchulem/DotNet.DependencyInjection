@@ -14,6 +14,10 @@ namespace Kuchulem.DotNet.DependencyInjection
 
         private static readonly Dictionary<Type, SingletonDependencyData> singletons = new Dictionary<Type, SingletonDependencyData>();
 
+        private static readonly List<Type> assemblyDependencies = new List<Type>();
+
+        private static readonly List<Assembly> assemblies = new List<Assembly>();
+
         private static readonly object dependencyLock = new object();
 
         private static IResolver Resolver = new Resolver();
@@ -44,15 +48,63 @@ namespace Kuchulem.DotNet.DependencyInjection
             where TDependency : class
             where TImplementation : TDependency
         {
+            Register<TDependency>(typeof(TImplementation));
+        }
+
+        /// <summary>
+        /// Registers a dependency with the implementation type.
+        /// </summary>
+        /// <typeparam name="TDependency"></typeparam>
+        /// <param name="implementationType"></param>
+        public static void Register<TDependency>(Type implementationType)
+            where TDependency : class
+        {
+            Register(typeof(TDependency), implementationType);
+        }
+
+        public static void Register(Type dependencyType, Type implementationType)
+        {
             lock (dependencyLock)
             {
-                if (dependencies.ContainsKey(typeof(TDependency)))
-                    throw new AlreadyRegisteredDependencyException(typeof(TDependency)); // dependency already registered
+                if (!IsRegistered(dependencyType))
+                    dependencies[dependencyType] = new TranscientDependencyData
+                    {
+                        ImplementationType = implementationType,
+                    };
+                else
+                    throw new AlreadyRegisteredDependencyException(dependencyType); // dependency already registered
 
-                dependencies[typeof(TDependency)] = new TranscientDependencyData
-                {
-                    ImplementationType = typeof(TImplementation),
-                };
+            }
+        }
+
+        /// <summary>
+        /// Register a dependency that will be resolved by looking in assemblies registered
+        /// with <i>AddSourceAssmbly(Assembly)</i>.
+        /// </summary>
+        /// <typeparam name="TDependency"></typeparam>
+        public static void Register<TDependency>()
+            where TDependency : class
+        {
+            lock (dependencyLock)
+            {
+                if (!IsRegistered<TDependency>())
+                    assemblyDependencies.Add(typeof(TDependency));
+                else
+                    throw new AlreadyRegisteredDependencyException(typeof(TDependency));
+            }
+        }
+
+        /// <summary>
+        /// Adds an assembly to look for when resolving a dependency registered with
+        /// the <i>Register&lt;TDependency&gt;()</i> method
+        /// </summary>
+        /// <param name="assembly"></param>
+        public static void AddSourceAssembly(Assembly assembly)
+        {
+            lock (dependencyLock)
+            {
+                if (!assemblies.Contains(assembly))
+                    assemblies.Add(assembly);
             }
         }
 
@@ -104,13 +156,16 @@ namespace Kuchulem.DotNet.DependencyInjection
         }
 
         /// <summary>
-        /// Checkes if the dependency is registered using its type.
+        /// Checks if the dependency is registered using its type.
         /// </summary>
         /// <param name="type">The type of the dependency interface / base class</param>
         /// <returns></returns>
-        public static bool IsRegistered(Type type)
+        public static bool IsRegistered(Type dependencyType)
         {
-            return dependencies.ContainsKey(type) || singletons.ContainsKey(type);
+            return
+                dependencies.ContainsKey(dependencyType) ||
+                assemblyDependencies.Contains(dependencyType) ||
+                singletons.ContainsKey(dependencyType);
         }
 
         /// <summary>
@@ -124,9 +179,7 @@ namespace Kuchulem.DotNet.DependencyInjection
         /// <returns></returns>
         public static TDependency Resolve<TDependency>() where TDependency : class
         {
-            var dependencyType = typeof(TDependency);
-
-            return (TDependency)Resolve(dependencyType);
+            return (TDependency)Resolve(typeof(TDependency));
         }
 
         /// <summary>
@@ -147,10 +200,30 @@ namespace Kuchulem.DotNet.DependencyInjection
 
             if (singletons.ContainsKey(dependencyType))
             {
-                if (singletons[dependencyType].Instance is null)
-                    singletons[dependencyType].Instance = Resolver.Resolve(singletons[dependencyType], dependencyLock);
+                lock (dependencyLock)
+                {
+                    if (singletons[dependencyType].Instance is null)
+                        singletons[dependencyType].Instance = Resolver.Resolve(singletons[dependencyType], dependencyLock);
+                }
 
                 return singletons[dependencyType].Instance;
+            }
+
+            if(assemblyDependencies.Contains(dependencyType))
+            {
+                Type implementationType = null;
+                lock(dependencyLock)
+                {
+                    implementationType = SearchImplementation(dependencyType);
+
+                    if (implementationType != null)
+                    {
+                        Register(dependencyType, implementationType);
+                    }
+                }
+
+                if (implementationType != null)
+                    return Resolver.Resolve(dependencies[dependencyType], dependencyLock);
             }
 
             throw new NotRegisteredDependencyException(dependencyType);
@@ -164,6 +237,29 @@ namespace Kuchulem.DotNet.DependencyInjection
         public static T Inject<T>() where T : class
         {
             return Resolver.Resolve<T>(new TranscientDependencyData { ImplementationType = typeof(T) }, dependencyLock);
+        }
+
+        private static Type SearchImplementation(Type dependencyType)
+        {
+            foreach(var assembly in assemblies)
+            {
+                var type = SearchImplementation(dependencyType, assembly);
+                if (type != null)
+                    return type;
+            }
+
+            return null;
+        }
+
+        private static Type SearchImplementation(Type dependencyType, Assembly assembly)
+        {
+            foreach(var type in assembly.GetTypes())
+            {
+                if (dependencyType.IsAssignableFrom(type))
+                    return type;
+            }
+
+            return null;
         }
     }
 }
