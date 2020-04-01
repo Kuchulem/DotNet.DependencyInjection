@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kuchulem.DotNet.DependencyInjection.Writer;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -9,7 +10,8 @@ namespace Kuchulem.DotNet.DependencyInjection.Demo.Services
     {
         private readonly INumericalSequenceService sequenceService;
 
-        public NumericalSequenceProgramService(INumericalSequenceService sequenceService, II18nService i18nService)
+        public NumericalSequenceProgramService(INumericalSequenceService sequenceService, II18nService i18nService, IWriter writer)
+            : base(writer)
         {
             this.sequenceService = sequenceService;
             this.i18nService = i18nService;
@@ -38,12 +40,12 @@ namespace Kuchulem.DotNet.DependencyInjection.Demo.Services
             for (var i = index; i < nbIterations; i++)
                 DisplayValue(i + 1, sequenceService.Next());
 
-            Console.WriteLine(i18nService.Translate("SequenceDone"));
+            writer.WriteLine(i18nService.Translate("SequenceDone"));
         }
 
         private void DisplayValue(int valueIndex, int value)
         {
-            Console.WriteLine(string.Format(
+            writer.WriteLine(string.Format(
                 i18nService.Translate("DisplayIterationValueFormat"),
                 valueIndex,
                 value

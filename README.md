@@ -8,6 +8,8 @@ Quite easy to use it allows you to have _transcient_ dependencies (instantiated 
 
 ## how to use
 
+A fully featured documentation is available in the github [wiki](https://github.com/Kuchulem/DotNet.DependencyInjection/wiki).
+
 Let's assume we develop a console application to display a numerical sequence :
 
 ```csharp
@@ -97,6 +99,12 @@ INumericalSequenceService service = DependencyInjectionService.Resolve<INumerica
 
 # What else ?
 
-WIP, more to come :)
+## Xamarin forms compatibility
 
-Even a propoer doc.
+The `DependencyInjectService` allows you to register an assembly rather than an implementation. This is helpfull when working on xamarin forms projects and loading dependencies that are dependent to the OS.
+
+## Disclaimer
+
+The library is actually in Beta state, meaning you use it at your own risks. Be aware of that. I tested it lightly and started to use it in my own projects.
+
+Thought I may not add features to the lib I will fix it as fast as I can if needed.

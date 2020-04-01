@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kuchulem.DotNet.DependencyInjection.Demo.ConsoleWriter\Kuchulem.DotNet.DependencyInjection.Demo.ConsoleWriter.csproj" />
+    <ProjectReference Include="..\Kuchulem.DotNet.DependencyInjection.Writer\Kuchulem.DotNet.DependencyInjection.Writer.csproj" />
     <ProjectReference Include="..\Kuchulem.DotNet.DependencyInjection\Kuchulem.DotNet.DependencyInjection.csproj" />
   </ItemGroup>
 

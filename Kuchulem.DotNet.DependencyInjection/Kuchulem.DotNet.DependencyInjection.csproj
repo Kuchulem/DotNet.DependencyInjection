@@ -1,7 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>1.0.0-beta</Version>
+    <Authors>Kuchulem</Authors>
+    <Company>KuchulemOrg</Company>
+    <Description>A dependency injection service, to be used in console applications or xamarin forms applications.
+Provides mechanics to register or load dependencies.
+Dependencies registered directly or from an assembly.</Description>
+    <Copyright />
+    <PackageLicenseExpression></PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Kuchulem/DotNet.DependencyInjection</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Kuchulem/DotNet.DependencyInjection</RepositoryUrl>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
